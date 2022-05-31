@@ -48,6 +48,7 @@ const validateProperties = (property) => {
 		}
 	};
 };
+
 const validateHasDishes = (req, res, next) => {
 	const { data: { dishes } = {} } = req.body;
 	if (Array.isArray(dishes) === false || dishes.length <= 0) {
@@ -56,6 +57,7 @@ const validateHasDishes = (req, res, next) => {
 		next();
 	}
 };
+
 const validateQuantityOfDish = (req, res, next) => {
 	const { data: { dishes } = {} } = req.body;
 	for (let i = 0; i < dishes.length; i++) {
@@ -132,6 +134,7 @@ const create = (req, res, next) => {
 const list = (req, res, next) => {
 	res.json({ data: orders });
 };
+
 const read = (req, res, next) => {
 	res.json({ data: res.locals.order });
 };
