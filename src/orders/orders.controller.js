@@ -18,6 +18,23 @@ const validateId = (req, res, next) => {
 		});
 	}
 };
+
+const validateBodyId = (req, res, next) => {
+	const { data: { id } = {} } = req.body;
+	const { orderId } = req.params;
+	if (!id) {
+		next();
+	}
+	if (id !== orderId) {
+		next({
+			status: 400,
+			message: `Order id does not match route id. Order: ${id}, Route: ${orderId}`,
+		});
+	} else {
+		next();
+	}
+};
+
 const validateProperties = (property) => {
 	return function (req, res, next) {
 		const { data = {} } = req.body;
@@ -56,6 +73,49 @@ const validateQuantityOfDish = (req, res, next) => {
 	next();
 };
 
+const checkStatusDelivered = (req, res, next) => {
+	const orderToCheck = res.locals.order;
+
+	if (orderToCheck.status === "delivered") {
+		return next({
+			status: 400,
+			message: `A delivered order cannot be changed`,
+		});
+	} else {
+		next();
+	}
+};
+
+const checkStatusPending = (req, res, next) => {
+	const orderToCheck = res.locals.order;
+	if (orderToCheck.status === "pending") {
+		next();
+	} else {
+		next({
+			status: 400,
+			message: `An order cannot be deleted unless it is pending`,
+		});
+	}
+};
+
+const checkValidOrderStatus = (req, res, next) => {
+	const { data: { status } = {} } = req.body;
+	const validOrderStatus = [
+		"pending",
+		"preparing",
+		"out-for-delivery",
+		"delivered",
+	];
+	if (!validOrderStatus.includes(status)) {
+		return next({
+			status: 400,
+			message: `Order must have a status of pending, preparing, out-for-delivery, delivered`,
+		});
+	} else {
+		next();
+	}
+};
+
 //------------CRUD Funcs
 const create = (req, res, next) => {
 	const { data: { deliverTo, mobileNumber, dishes } = {} } = req.body;
@@ -63,7 +123,6 @@ const create = (req, res, next) => {
 		id: nextId(),
 		deliverTo,
 		mobileNumber,
-		status: "delivered",
 		dishes,
 	};
 	orders.push(newOrder);
@@ -77,9 +136,26 @@ const read = (req, res, next) => {
 	res.json({ data: res.locals.order });
 };
 
-const update = (req, res, next) => {};
+const update = (req, res, next) => {
+	const orderToUpdate = res.locals.order;
+	const { data: { deliverTo, mobileNumber, dishes, status } = {} } = req.body;
+	//update order
+	orderToUpdate.deliverTo = deliverTo;
+	orderToUpdate.mobileNumber = mobileNumber;
+	orderToUpdate.dishes = dishes;
+	orderToUpdate.status = status;
 
-const destroy = (req, res, next) => {};
+	res.json({ data: orderToUpdate });
+};
+
+const destroy = (req, res, next) => {
+	const { orderId } = req.params;
+	const indexToDelete = orders.findIndex((order) => orderId === order.id);
+	orders.splice(indexToDelete, 1);
+	res.status(204).json({ data: orders });
+};
+
+//--------exports
 
 module.exports = {
 	create: [
@@ -92,6 +168,18 @@ module.exports = {
 	],
 	list,
 	read: [validateId, read],
-	update,
-	destroy,
+	update: [
+		validateId,
+		validateBodyId,
+		checkStatusDelivered,
+		checkValidOrderStatus,
+		validateProperties("deliverTo"),
+		validateProperties("mobileNumber"),
+		validateProperties("dishes"),
+		validateProperties("status"),
+		validateHasDishes,
+		validateQuantityOfDish,
+		update,
+	],
+	delete: [validateId, checkStatusPending, destroy],
 };

@@ -1,13 +1,9 @@
 const { verify } = require("crypto");
 const path = require("path");
 const dishesData = require("../data/dishes-data");
-//Use the existing dishes data
-// const dishes = require(path.resolve("src/data/dishes-data"));
 
 // Use this function to assign ID's when necessary
 const nextId = require("../utils/nextId");
-
-// TODO: Implement the /dishes handlers needed to make the tests pass
 
 //------------Middleware Funcs
 const validateIdExists = (req, res, next) => {
@@ -104,6 +100,8 @@ const update = (req, res, next) => {
 	res.json({ data: currentDish });
 };
 
+//--------export
+
 module.exports = {
 	create: [
 		verifyHasProperty("name"),
@@ -116,11 +114,11 @@ module.exports = {
 	list,
 	read: [validateIdExists, read],
 	update: [
+		validateIdExists,
 		verifyHasProperty("name"),
 		verifyHasProperty("description"),
 		verifyHasProperty("price"),
 		verifyHasProperty("image_url"),
-		validateIdExists,
 		validateBodyId,
 		validatePrice,
 		update,
