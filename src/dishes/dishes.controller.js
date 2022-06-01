@@ -6,7 +6,7 @@ const dishesData = require("../data/dishes-data");
 const nextId = require("../utils/nextId");
 
 //------------Middleware Funcs
-const validateIdExists = (req, res, next) => {
+function validateIdExists(req, res, next) {
 	const { dishId } = req.params;
 	const matchingDish = dishesData.find((dish) => dish.id === dishId);
 	if (matchingDish) {
@@ -18,9 +18,9 @@ const validateIdExists = (req, res, next) => {
 			message: `A dish with an ID of: ${dishId} could not be found`,
 		});
 	}
-};
+}
 
-const validateBodyId = (req, res, next) => {
+function validateBodyId(req, res, next) {
 	const { data: { id } = {} } = req.body;
 	const { dishId } = req.params;
 	if (!id) {
@@ -34,9 +34,9 @@ const validateBodyId = (req, res, next) => {
 	} else {
 		next();
 	}
-};
+}
 
-const verifyHasProperty = (propertyName) => {
+function verifyHasProperty(propertyName) {
 	return function (req, res, next) {
 		const { data = {} } = req.body;
 		if (data[propertyName]) {
@@ -48,9 +48,9 @@ const verifyHasProperty = (propertyName) => {
 			});
 		}
 	};
-};
+}
 
-const validatePrice = (req, res, next) => {
+function validatePrice(req, res, next) {
 	const { data: { price } = {} } = req.body;
 	if (price <= 0 || Number.isInteger(price) === false) {
 		return next({
@@ -60,11 +60,11 @@ const validatePrice = (req, res, next) => {
 	} else {
 		next();
 	}
-};
+}
 
 //------------CRUD Funcs
 
-const create = (req, res, next) => {
+function create(req, res, next) {
 	const {
 		data: { name, description, price, image_url },
 	} = req.body;
@@ -77,17 +77,17 @@ const create = (req, res, next) => {
 	};
 	dishesData.push(newDish);
 	res.status(201).json({ data: newDish });
-};
+}
 
-const list = (req, res, next) => {
+function list(req, res, next) {
 	res.json({ data: dishesData });
-};
+}
 
-const read = (req, res, next) => {
+function read(req, res, next) {
 	res.json({ data: res.locals.dish });
-};
+}
 
-const update = (req, res, next) => {
+function update(req, res, next) {
 	const currentDish = res.locals.dish;
 	const {
 		data: { name, description, price, image_url },
@@ -98,7 +98,7 @@ const update = (req, res, next) => {
 	currentDish.price = price;
 	currentDish["image_url"] = image_url;
 	res.json({ data: currentDish });
-};
+}
 
 //--------export
 

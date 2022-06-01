@@ -5,7 +5,7 @@ const orders = require(path.resolve("src/data/orders-data"));
 const nextId = require("../utils/nextId");
 
 //------------Middleware Funcs
-const validateId = (req, res, next) => {
+function validateId(req, res, next) {
 	const { orderId } = req.params;
 	const foundOrder = orders.find((order) => order.id === orderId);
 	if (foundOrder) {
@@ -17,9 +17,9 @@ const validateId = (req, res, next) => {
 			message: `An order with an ID of ${orderId} could not be found.`,
 		});
 	}
-};
+}
 
-const validateBodyId = (req, res, next) => {
+function validateBodyId(req, res, next) {
 	const { data: { id } = {} } = req.body;
 	const { orderId } = req.params;
 	if (!id) {
@@ -33,9 +33,9 @@ const validateBodyId = (req, res, next) => {
 	} else {
 		next();
 	}
-};
+}
 
-const validateProperties = (property) => {
+function validateProperties(property) {
 	return function (req, res, next) {
 		const { data = {} } = req.body;
 		if (data[property]) {
@@ -47,18 +47,18 @@ const validateProperties = (property) => {
 			});
 		}
 	};
-};
+}
 
-const validateHasDishes = (req, res, next) => {
+function validateHasDishes(req, res, next) {
 	const { data: { dishes } = {} } = req.body;
 	if (Array.isArray(dishes) === false || dishes.length <= 0) {
 		next({ status: 400, message: `Order must include at least one dish` });
 	} else {
 		next();
 	}
-};
+}
 
-const validateQuantityOfDish = (req, res, next) => {
+function validateQuantityOfDish(req, res, next) {
 	const { data: { dishes } = {} } = req.body;
 	for (let i = 0; i < dishes.length; i++) {
 		if (
@@ -73,9 +73,9 @@ const validateQuantityOfDish = (req, res, next) => {
 		}
 	}
 	next();
-};
+}
 
-const checkStatusDelivered = (req, res, next) => {
+function checkStatusDelivered(req, res, next) {
 	const orderToCheck = res.locals.order;
 
 	if (orderToCheck.status === "delivered") {
@@ -86,9 +86,9 @@ const checkStatusDelivered = (req, res, next) => {
 	} else {
 		next();
 	}
-};
+}
 
-const checkStatusPending = (req, res, next) => {
+function checkStatusPending(req, res, next) {
 	const orderToCheck = res.locals.order;
 	if (orderToCheck.status === "pending") {
 		next();
@@ -98,9 +98,9 @@ const checkStatusPending = (req, res, next) => {
 			message: `An order cannot be deleted unless it is pending`,
 		});
 	}
-};
+}
 
-const checkValidOrderStatus = (req, res, next) => {
+function checkValidOrderStatus(req, res, next) {
 	const { data: { status } = {} } = req.body;
 	const validOrderStatus = [
 		"pending",
@@ -116,10 +116,10 @@ const checkValidOrderStatus = (req, res, next) => {
 	} else {
 		next();
 	}
-};
+}
 
 //------------CRUD Funcs
-const create = (req, res, next) => {
+function create(req, res, next) {
 	const { data: { deliverTo, mobileNumber, dishes } = {} } = req.body;
 	const newOrder = {
 		id: nextId(),
@@ -129,17 +129,17 @@ const create = (req, res, next) => {
 	};
 	orders.push(newOrder);
 	res.status(201).json({ data: newOrder });
-};
+}
 
-const list = (req, res, next) => {
+function list(req, res, next) {
 	res.json({ data: orders });
-};
+}
 
-const read = (req, res, next) => {
+function read(req, res, next) {
 	res.json({ data: res.locals.order });
-};
+}
 
-const update = (req, res, next) => {
+function update(req, res, next) {
 	const orderToUpdate = res.locals.order;
 	const { data: { deliverTo, mobileNumber, dishes, status } = {} } = req.body;
 	//update order
@@ -149,14 +149,14 @@ const update = (req, res, next) => {
 	orderToUpdate.status = status;
 
 	res.json({ data: orderToUpdate });
-};
+}
 
-const destroy = (req, res, next) => {
+function destroy(req, res, next) {
 	const { orderId } = req.params;
 	const indexToDelete = orders.findIndex((order) => orderId === order.id);
 	orders.splice(indexToDelete, 1);
 	res.status(204).json({ data: orders });
-};
+}
 
 //--------exports
 
